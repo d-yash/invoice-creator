@@ -50,44 +50,64 @@ class InvoiceForm extends React.Component {
     var index = this.state.items.indexOf(items);
     this.state.items.splice(index, 1);
     this.setState(this.state.items);
-  };
+    this.handleCalculateTotal();
+  }
   handleAddEvent(evt) {
     var id = (+ new Date() + Math.floor(Math.random() * 999999)).toString(36);
     var items = {
       id: id,
       name: '',
-      price: '1.00',
+      price: '0.00',
       description: '',
       quantity: 1
     }
     this.state.items.push(items);
     this.setState(this.state.items);
+    this.handleCalculateTotal();
   }
   handleCalculateTotal() {
     var items = this.state.items;
     var subTotal = 0;
 
-    items.map(function(items) {
-      subTotal = parseFloat(subTotal + (parseFloat(items.price).toFixed(2) * parseInt(items.quantity))).toFixed(2)
+    items.forEach((item) => {
+      subTotal = parseFloat(
+        parseFloat(subTotal) +
+          parseFloat(item.price).toFixed(2) * parseInt(item.quantity)
+      ).toFixed(2);
     });
 
-    this.setState({
-      subTotal: parseFloat(subTotal).toFixed(2)
-    }, () => {
-      this.setState({
-        taxAmmount: parseFloat(parseFloat(subTotal) * (this.state.taxRate / 100)).toFixed(2)
-      }, () => {
-        this.setState({
-          discountAmmount: parseFloat(parseFloat(subTotal) * (this.state.discountRate / 100)).toFixed(2)
-        }, () => {
-          this.setState({
-            total: ((subTotal - this.state.discountAmmount) + parseFloat(this.state.taxAmmount))
-          });
-        });
-      });
-    });
-
-  };
+    this.setState(
+      {
+        subTotal: parseFloat(subTotal).toFixed(2),
+      },
+      () => {
+        this.setState(
+          {
+            taxAmmount: parseFloat(
+              parseFloat(subTotal) * (this.state.taxRate / 100)
+            ).toFixed(2),
+          },
+          () => {
+            this.setState(
+              {
+                discountAmmount: parseFloat(
+                  parseFloat(subTotal) * (this.state.discountRate / 100)
+                ).toFixed(2),
+              },
+              () => {
+                this.setState({
+                  total:
+                    subTotal -
+                    this.state.discountAmmount +
+                    parseFloat(this.state.taxAmmount),
+                });
+              }
+            );
+          }
+        );
+      }
+    );
+  }
   onItemizedItemEdit(evt) {
     var item = {
       id: evt.target.id,
@@ -122,7 +142,8 @@ class InvoiceForm extends React.Component {
   };
   closeModal = (event) => this.setState({isOpen: false});
   render() {
-    return (<Form onSubmit={this.openModal}>
+    return (
+    <Form onSubmit={this.openModal}>
       <Row>
         <Col md={8} lg={9}>
           <Card className="p-4 p-xl-5 my-3 my-xl-4">
